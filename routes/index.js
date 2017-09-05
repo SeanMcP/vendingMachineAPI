@@ -4,9 +4,13 @@ const models = require('../models/index')
 const Item = require('../models/item')
 const Purchase = require('../models/purchase')
 
-router.get('/', function(req, res) {
-  res.send('Just a slash')
-})
+const sendMessage = function(status, data) {
+  let obj = {
+    status: status,
+    data: data
+  }
+  return obj
+}
 
 // GET /api/customer/items - get a list of items
 // POST /api/customer/items/:itemId/purchases - purchase an item
@@ -15,18 +19,10 @@ router.get('/', function(req, res) {
 // POST /api/vendor/items - add a new item not previously existing in the machine
 // PUT /api/vendor/items/:itemId - update item quantity, description, and cost
 
-router.get('/api', function(req, res) {
-  res.send('You have found the API')
-})
-
 router.get('/api/customer/items', function(req, res) {
   models.Item.findAll()
   .then(function(data) {
-    let message = {
-      status: 'success',
-      data: data
-    }
-    res.send(message)
+    res.send(sendMessage('success', data))
   })
   .catch(function(err) {
     res.send('Uh-oh! Something went wrong')
@@ -73,14 +69,11 @@ router.post('/api/customer/items/:itemId/purchases', function(req, res) {
       res.send('Out of stock')
     } else {
       let message = {
-        status: 'fail',
-        data: {
-          moneyGiven: req.body.moneyGiven,
-          moneyRequired: data.price,
-          difference: data.price - req.body.moneyGiven
-        }
+        moneyGiven: req.body.moneyGiven,
+        moneyRequired: data.price,
+        difference: data.price - req.body.moneyGiven
       }
-      res.send(message)
+      res.send(sendMessage('fail', message))
     }
   })
   .catch(function() {
@@ -115,11 +108,35 @@ router.put('/api/vendor/items/:itemId', function(req, res) {
     { where: { id: req.params.itemId }
   })
   .then(function() {
-    res.send('Item successfully updated')
+    res.send('Item no. ' + req.params.itemId + ' successfully updated')
   })
   .catch(function() {
     res.send('Uh-oh! Something went wrong')
   })
+})
+
+router.get('/api/vendor/purchases', function(req, res) {
+  models.Purchase.findAll()
+  .then(function(data) {
+    res.send(sendMessage('success', data))
+  })
+  .catch(function(error) {
+    res.send('Uh-oh! Something went wrong')
+  })
+})
+
+router.get('/api/vendor/money', function(req, res) {
+  models.Purchase.sum('moneyRequired')
+  .then(function(sum) {
+    res.send(sendMessage('success', sum))
+  })
+  .catch(function() {
+    res.send('Uh-oh! Something went wrong')
+  })
+})
+
+router.get('*', function(req, res) {
+  res.send('Welcome to vendingMachineAPI')
 })
 
 module.exports = router
