@@ -47,6 +47,19 @@ router.post('/api/customer/items/:itemId/purchases', function(req, res) {
 
       models.Purchase.create(newPurchase)
       .then(function() {
+
+        models.Item.update({
+            quantity: data.quantity - 1
+          },
+          { where: { id: req.params.itemId }
+        })
+        .then(function() {
+          console.log('Decreased quantity by one')
+        })
+        .catch(function() {
+          console.log('Failed to decrease quantity by one')
+        })
+
         res.send('You have successfully purchased 1 ' + data.name + ' and receive ' + calcChange + ' cents change')
       })
       .catch(function() {
@@ -78,6 +91,22 @@ router.post('/api/vendor/items', function(req, res) {
   })
   .catch(function() {
     res.send('Something went wrong: nothing added')
+  })
+})
+
+router.put('/api/vendor/items/:itemId', function(req, res) {
+  models.Item.update({
+      name: req.body.name,
+      price: req.body.price,
+      quantity: req.body.quantity
+    },
+    { where: { id: req.params.itemId }
+  })
+  .then(function() {
+    res.send('Item successfully updated')
+  })
+  .catch(function() {
+    res.send('Uh-oh! Something went wrong')
   })
 })
 
