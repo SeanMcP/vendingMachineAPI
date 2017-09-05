@@ -16,10 +16,10 @@ router.get('/api/customer/items', function(req, res) {
   models.Item.findAll()
   .then(function(data) {
     // res.send(sendMessage('success', data))
-    res.send(sendMessage('success', data))
+    res.status(200).send(sendMessage('success', data))
   })
   .catch(function(err) {
-    res.send('ERROR: Unable to retrieve items')
+    res.status(403).send(sendMessage('fail', err))
   })
 })
 
@@ -48,31 +48,29 @@ router.post('/api/customer/items/:itemId/purchases', function(req, res) {
           { where: { id: req.params.itemId }
         })
         .then(function(updatedItem) {
-          res.send(sendMessage('success', updatedItem))
+          res.status(200).send(sendMessage('success', updatedItem))
         })
         .catch(function(err) {
-          res.send(sendMessage('fail', err))
+          res.status(304).send(sendMessage('fail', err))
         })
 
       })
       .catch(function(err) {
-        res.json(err)
-        // res.send('ERROR: Unable to purchase')
+        res.status(304).send(sendMessage('fail', err))
       })
     } else if(data.quantity <= 0) {
-      res.send('Out of stock')
+      res.status(403).send(sendMessage('fail', err))
     } else {
       let message = {
         moneyGiven: req.body.moneyGiven,
         moneyRequired: data.price,
         difference: data.price - req.body.moneyGiven
       }
-      res.send(sendMessage('fail', message))
+      res.status(400).send(sendMessage('fail', message))
     }
   })
   .catch(function(err) {
-    res.send('ERROR: Unable to find item')
-    res.json(err)
+    res.status(403).send(sendMessage('fail', err))
   })
 })
 
@@ -87,10 +85,10 @@ router.post('/api/vendor/items', function(req, res) {
 
   models.Item.create(newItem)
   .then(function(data) {
-    res.send(sendMessage('success', data))
+    res.status(200).send(sendMessage('success', data))
   })
   .catch(function(err) {
-    res.send('Something went wrong: nothing added')
+    res.status(304).send(sendMessage('fail', err))
   })
 })
 
@@ -103,30 +101,30 @@ router.put('/api/vendor/items/:itemId', function(req, res) {
     { where: { id: req.params.itemId }
   })
   .then(function(data) {
-    res.send(sendMessage('success', data))
+    res.status(200).send(sendMessage('success', data))
   })
   .catch(function(err) {
-    res.send('ERROR: Unable to update item')
+    res.status(304).send(sendMessage('fail', err))
   })
 })
 
 router.get('/api/vendor/purchases', function(req, res) {
   models.Purchase.findAll()
   .then(function(data) {
-    res.send(sendMessage('success', data))
+    res.status(200).send(sendMessage('success', data))
   })
   .catch(function(err) {
-    res.send('ERROR: Unable to view purchases')
+    res.status(403).send(sendMessage('fail', err))
   })
 })
 
 router.get('/api/vendor/money', function(req, res) {
   models.Purchase.sum('moneyRequired')
   .then(function(sum) {
-    res.send(sendMessage('success', sum))
+    res.status(200).send(sendMessage('success', sum))
   })
   .catch(function(err) {
-    res.send('ERROR: Unable to view revenue')
+    res.status(403).send(sendMessage('fail', err))
   })
 })
 
