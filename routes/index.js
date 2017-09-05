@@ -15,10 +15,11 @@ const sendMessage = function(status, data) {
 router.get('/api/customer/items', function(req, res) {
   models.Item.findAll()
   .then(function(data) {
+    // res.send(sendMessage('success', data))
     res.send(sendMessage('success', data))
   })
   .catch(function(err) {
-    res.send('Uh-oh! Something went wrong')
+    res.send('ERROR: Unable to retrieve items')
   })
 })
 
@@ -39,24 +40,24 @@ router.post('/api/customer/items/:itemId/purchases', function(req, res) {
       }
 
       models.Purchase.create(newPurchase)
-      .then(function() {
+      .then(function(purchase) {
 
         models.Item.update({
             quantity: data.quantity - 1
           },
           { where: { id: req.params.itemId }
         })
-        .then(function() {
-          console.log('Decreased quantity by one')
+        .then(function(updatedItem) {
+          res.send(sendMessage('success', updatedItem))
         })
-        .catch(function() {
-          console.log('Failed to decrease quantity by one')
+        .catch(function(err) {
+          res.send(sendMessage('fail', err))
         })
 
-        res.send('You have successfully purchased 1 ' + data.name + ' and receive ' + calcChange + ' cents change')
       })
-      .catch(function() {
-        res.send('Uh-oh! Something went wrong')
+      .catch(function(err) {
+        res.json(err)
+        // res.send('ERROR: Unable to purchase')
       })
     } else if(data.quantity <= 0) {
       res.send('Out of stock')
@@ -69,8 +70,9 @@ router.post('/api/customer/items/:itemId/purchases', function(req, res) {
       res.send(sendMessage('fail', message))
     }
   })
-  .catch(function() {
-    res.send('Unable to find item')
+  .catch(function(err) {
+    res.send('ERROR: Unable to find item')
+    res.json(err)
   })
 })
 
@@ -84,10 +86,10 @@ router.post('/api/vendor/items', function(req, res) {
   }
 
   models.Item.create(newItem)
-  .then(function() {
-    res.send('You have successfully added ' + req.body.quantity + ' new ' + req.body.name + 's')
+  .then(function(data) {
+    res.send(sendMessage('success', data))
   })
-  .catch(function() {
+  .catch(function(err) {
     res.send('Something went wrong: nothing added')
   })
 })
@@ -100,11 +102,11 @@ router.put('/api/vendor/items/:itemId', function(req, res) {
     },
     { where: { id: req.params.itemId }
   })
-  .then(function() {
-    res.send('Item no. ' + req.params.itemId + ' successfully updated')
+  .then(function(data) {
+    res.send(sendMessage('success', data))
   })
-  .catch(function() {
-    res.send('Uh-oh! Something went wrong')
+  .catch(function(err) {
+    res.send('ERROR: Unable to update item')
   })
 })
 
@@ -113,8 +115,8 @@ router.get('/api/vendor/purchases', function(req, res) {
   .then(function(data) {
     res.send(sendMessage('success', data))
   })
-  .catch(function(error) {
-    res.send('Uh-oh! Something went wrong')
+  .catch(function(err) {
+    res.send('ERROR: Unable to view purchases')
   })
 })
 
@@ -123,13 +125,9 @@ router.get('/api/vendor/money', function(req, res) {
   .then(function(sum) {
     res.send(sendMessage('success', sum))
   })
-  .catch(function() {
-    res.send('Uh-oh! Something went wrong')
+  .catch(function(err) {
+    res.send('ERROR: Unable to view revenue')
   })
-})
-
-router.get('*', function(req, res) {
-  res.send('Welcome to vendingMachineAPI')
 })
 
 module.exports = router
