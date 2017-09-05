@@ -22,7 +22,11 @@ router.get('/api', function(req, res) {
 router.get('/api/customer/items', function(req, res) {
   models.Item.findAll()
   .then(function(data) {
-    res.send(data)
+    let message = {
+      status: 'success',
+      data: data
+    }
+    res.send(message)
   })
   .catch(function(err) {
     res.send('Uh-oh! Something went wrong')
@@ -68,7 +72,15 @@ router.post('/api/customer/items/:itemId/purchases', function(req, res) {
     } else if(data.quantity <= 0) {
       res.send('Out of stock')
     } else {
-      res.send('Insufficient funds')
+      let message = {
+        status: 'fail',
+        data: {
+          moneyGiven: req.body.moneyGiven,
+          moneyRequired: data.price,
+          difference: data.price - req.body.moneyGiven
+        }
+      }
+      res.send(message)
     }
   })
   .catch(function() {
